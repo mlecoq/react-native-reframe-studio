@@ -11,8 +11,17 @@ const FADE = 0.25;
 const MATCH_IOU = 0.15;
 /** A track may skip this many seconds of missed detections before closing. */
 const MAX_GAP = 0.8;
-/** Tracks shorter than this are detector noise — drop them. */
-const MIN_SAMPLES = 3;
+/** Tracks shorter than this are detector noise — drop them (seconds). */
+const MIN_TRACK_DURATION = 1.2;
+/**
+ * A living face is never perfectly still: even someone listening quietly
+ * bobs enough for the detection box to wander a few tenths of a percent of
+ * the frame between samples. A "face" whose box stays put to the fourth
+ * decimal is a statue — a poster, a screen pattern, an empty spacesuit on
+ * display (the bundled NASA sample has all three in shot). Real faces in
+ * that same footage measure σ ≥ 0.003.
+ */
+const STATUE_STD = 0.0015;
 
 const iou = (a: FaceBox, b: FaceBox) => {
   const x1 = Math.max(a.x, b.x);
@@ -54,7 +63,22 @@ export const buildFaceTracks = (analysis: FaceAnalysis): FaceTrack[] => {
     }
   }
   return tracks
-    .filter((track) => track.samples.length >= MIN_SAMPLES)
+    .filter((track) => {
+      const samples = track.samples;
+      const duration = samples[samples.length - 1]!.time - samples[0]!.time;
+      if (duration < MIN_TRACK_DURATION) return false;
+      const std = (values: number[]) => {
+        const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+        return Math.sqrt(
+          values.reduce((sum, v) => sum + (v - mean) * (v - mean), 0) / values.length
+        );
+      };
+      const wobble = Math.max(
+        std(samples.map((s) => s.x + s.width / 2)),
+        std(samples.map((s) => s.y + s.height / 2))
+      );
+      return wobble >= STATUE_STD;
+    })
     .map(({ samples }) => ({ samples }));
 };
 

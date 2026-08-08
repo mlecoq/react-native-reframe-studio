@@ -71,7 +71,14 @@ export const useExport = (
             settings: snapshotSettings,
           });
         },
-        onProgress: ({ framesCompleted, nbFrames }) => setProgress(framesCompleted / nbFrames),
+        // One scheduled state update per frame can starve the JS thread and
+        // freeze the progress bar; only commit whole-percent changes —
+        // returning the previous value lets React bail out of the render.
+        onProgress: ({ framesCompleted, nbFrames }) =>
+          setProgress((previous) => {
+            const next = framesCompleted / nbFrames;
+            return Math.round(next * 100) > Math.round(previous * 100) ? next : previous;
+          }),
       });
 
       setPhase('saving');

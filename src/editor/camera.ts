@@ -29,11 +29,16 @@ const FOLLOW_EASE = 0.12;
 /** Hard cap on camera speed, in fractions of the source width per second. */
 const MAX_SPEED = 0.35;
 
-/** Below this gap between two people, panning still reads fine; above, cut. */
-const CUT_DISTANCE = 0.55;
-
 /** A new face must be this much bigger than the current one to steal focus. */
 const FOCUS_HYSTERESIS = 1.25;
+
+/**
+ * A focus change must hold for this many samples before the camera reacts —
+ * one mislabelled phrase or one detector flicker shouldn't yank the frame.
+ * (Waived when the focused face has left the screen: there is nothing to
+ * keep framing.)
+ */
+const CONFIRM_SAMPLES = 2;
 
 /**
  * Who is talking, when the transcript says so.
@@ -112,15 +117,25 @@ export const cameraAt = (path: CameraPath, time: number): { x: number; y: number
 };
 
 /**
- * Follows the most prominent face — the one a human operator would keep in
- * frame — moving only when it leaves the dead zone, and cutting instead of
- * panning when focus jumps to someone far away.
+ * Follows the face a human operator would keep in frame, moving only when
+ * it leaves the dead zone — and when focus changes to ANOTHER person, it
+ * CUTS, always: panning between two people sweeps the empty set between
+ * them, which reads as a mistake at short-form zoom. A focus change must
+ * also persist a couple of samples before the camera commits, so a
+ * mislabelled phrase can't yank the frame back and forth.
+ *
+ * `preferTrack` pins one person: that face is framed whenever it is on
+ * screen, and the usual selection only applies while it is absent — this is
+ * what each window of the split view uses, so a window falls back to
+ * whoever IS visible when the source cuts away from its person instead of
+ * holding stale coordinates over a different shot.
  */
 export const buildFollowPath = (
   tracks: FaceTrack[],
   duration: number,
   view: View,
-  speakers: SpeakerTurns | null = null
+  speakers: SpeakerTurns | null = null,
+  preferTrack: number | null = null
 ): CameraPath => {
   const cropWidth = view.width;
   const half = cropWidth / 2;
@@ -132,6 +147,8 @@ export const buildFollowPath = (
   let y = 0.5;
   let focused = -1; // index of the track currently framed
   let started = false;
+  let pendingTrack = -1; // candidate focus waiting for confirmation
+  let pendingCount = 0;
 
   for (let i = 0; i < count; i++) {
     const time = i / PATH_FPS;
@@ -139,65 +156,91 @@ export const buildFollowPath = (
     let cut = false;
 
     if (faces.length > 0) {
-      // One face on screen: no question to answer — the source's own editor
-      // already chose. Several: whoever is talking wins, when we know it.
-      let speaking: (typeof faces)[number] | undefined;
-      if (faces.length === 1) {
-        speaking = faces[0]!;
-      } else {
+      // Who should be framed? The pinned person when visible; otherwise a
+      // single face decides itself, then whoever is talking (rank matched
+      // to on-screen faces left to right), then size with hysteresis.
+      const pinned =
+        preferTrack !== null
+          ? faces.find((face) => face.trackIndex === preferTrack)
+          : undefined;
+      let desired = pinned;
+      if (!desired && faces.length === 1) desired = faces[0]!;
+      if (!desired) {
         const turn = speakers?.turns.find((t) => time >= t.start && time < t.end);
         if (turn) {
           const leftToRight = [...faces].sort((a, b) => a.x - b.x);
-          speaking = leftToRight[Math.min(turn.rank, leftToRight.length - 1)]!;
+          desired = leftToRight[Math.min(turn.rank, leftToRight.length - 1)]!;
         }
       }
-
-      // Otherwise: the face already framed keeps focus unless another one is
-      // clearly bigger — closer to camera, usually the one being filmed.
-      // Without this hysteresis two similar faces trade focus every other
-      // sample.
-      let best = speaking ?? faces[0]!;
-      for (const face of speaking ? [] : faces) {
-        const area = face.width * face.height;
-        const bestArea = best.width * best.height;
-        if (best.trackIndex === focused) {
-          if (area > bestArea * FOCUS_HYSTERESIS) best = face;
-        } else if (face.trackIndex === focused) {
-          if (area * FOCUS_HYSTERESIS > bestArea) best = face;
-        } else if (area > bestArea) {
-          best = face;
+      if (!desired) {
+        let best = faces[0]!;
+        for (const face of faces) {
+          const area = face.width * face.height;
+          const bestArea = best.width * best.height;
+          if (best.trackIndex === focused) {
+            if (area > bestArea * FOCUS_HYSTERESIS) best = face;
+          } else if (face.trackIndex === focused) {
+            if (area * FOCUS_HYSTERESIS > bestArea) best = face;
+          } else if (area > bestArea) {
+            best = face;
+          }
         }
+        desired = best;
       }
 
-      const target = best.x + best.width / 2;
+      const focusedFace = faces.find((face) => face.trackIndex === focused);
+      const target = desired.x + desired.width / 2;
       // Vertically, aim a little above the face's middle: heads look right
       // with some room above and the shoulders showing below.
-      const targetY = best.y + best.height * 1.1;
-      y = started ? y + (targetY - y) * FOLLOW_EASE : targetY;
+      const targetY = desired.y + desired.height * 1.1;
+
       if (!started) {
         x = target;
+        y = targetY;
         started = true;
-      } else if (best.trackIndex !== focused && Math.abs(target - x) > CUT_DISTANCE * cropWidth) {
-        // Two people far apart: a pan would feel like a slow head turn.
-        x = target;
-        cut = true;
-      } else {
-        const deadZone = DEAD_ZONE * cropWidth;
-        const delta = target - x;
-        if (Math.abs(delta) > deadZone) {
-          // Move just enough to bring the face back to the dead zone's edge…
-          const desired = target - Math.sign(delta) * deadZone;
-          let step = (desired - x) * FOLLOW_EASE;
-          // …never faster than a real operator could swing the camera.
-          const maxStep = MAX_SPEED / PATH_FPS;
-          step = Math.min(Math.max(step, -maxStep), maxStep);
-          x += step;
+        focused = desired.trackIndex;
+      } else if (desired.trackIndex !== focused) {
+        pendingCount = desired.trackIndex === pendingTrack ? pendingCount + 1 : 1;
+        pendingTrack = desired.trackIndex;
+        if (pendingCount >= CONFIRM_SAMPLES || !focusedFace) {
+          // Committed: jump both axes at once. A cut is a jump, not a move.
+          cut = Math.abs(target - x) > DEAD_ZONE * cropWidth;
+          x = target;
+          y = targetY;
+          focused = desired.trackIndex;
+          pendingTrack = -1;
+          pendingCount = 0;
+        } else if (focusedFace) {
+          // Unconfirmed: keep quietly framing the current person.
+          followWithinDeadZone(focusedFace);
         }
+      } else {
+        pendingTrack = -1;
+        pendingCount = 0;
+        followWithinDeadZone(desired);
       }
-      focused = best.trackIndex;
     }
 
     samples.push({ time, x: clamp(x, half), y: clamp(y, halfY), cut });
+
+    // Nested so it can mutate x/y: the regular dead-zone pan, used only for
+    // the person ALREADY framed — never to travel between two people.
+    function followWithinDeadZone(face: { x: number; y: number; width: number; height: number }) {
+      const faceTarget = face.x + face.width / 2;
+      const faceTargetY = face.y + face.height * 1.1;
+      y += (faceTargetY - y) * FOLLOW_EASE;
+      const deadZone = DEAD_ZONE * cropWidth;
+      const delta = faceTarget - x;
+      if (Math.abs(delta) > deadZone) {
+        // Move just enough to bring the face back to the dead zone's edge…
+        const desiredX = faceTarget - Math.sign(delta) * deadZone;
+        let step = (desiredX - x) * FOLLOW_EASE;
+        // …never faster than a real operator could swing the camera.
+        const maxStep = MAX_SPEED / PATH_FPS;
+        step = Math.min(Math.max(step, -maxStep), maxStep);
+        x += step;
+      }
+    }
   }
   return { samples, zoom: view.zoom };
 };
@@ -233,9 +276,16 @@ export const buildGroupPath = (
   return { samples, zoom: view.zoom };
 };
 
-/** Follows one specific person — one half of the stacked split view. */
-export const buildTrackPath = (track: FaceTrack, duration: number, view: View): CameraPath =>
-  buildFollowPath([track], duration, view);
+/**
+ * One half of the stacked split view: pinned to one person, falling back to
+ * whoever is visible when the source cuts away from them.
+ */
+const buildSplitWindowPath = (
+  tracks: FaceTrack[],
+  trackIndex: number,
+  duration: number,
+  view: View
+): CameraPath => buildFollowPath(tracks, duration, view, null, trackIndex);
 
 /**
  * The pair of tracks the split view should stack: the two people who are on
@@ -295,7 +345,9 @@ export const buildPaths = (
   const pair = mode === 'split' ? splitPair(tracks) : null;
   if (pair) {
     const view = viewFor(sourceAspect, OUTPUT_ASPECT * 2, SPLIT_ZOOM);
-    return pair.map((track) => buildTrackPath(track, duration, view));
+    return pair.map((track) =>
+      buildSplitWindowPath(tracks, tracks.indexOf(track), duration, view)
+    );
   }
   const view = viewFor(sourceAspect, OUTPUT_ASPECT, 1);
   return [
