@@ -75,21 +75,22 @@ export const buildSpeakerTurns = (transcript: Transcript): SpeakerTurns | null =
 export type CameraPath = {
   /** Crop-window center, as fractions of the source frame. */
   samples: { time: number; x: number; y: number; cut: boolean }[];
+  /** Extra tightening on top of the cover fit (1 = cover, 1.7 = closer in). */
+  zoom: number;
 };
 
-/**
- * Width of the crop window as a fraction of the source width, for a given
- * output aspect. Both the path builder (JS) and the drawer (worklet) need
- * it, so it lives here as a pure function of the two aspect ratios.
- */
-export const cropWidthFraction = (sourceAspect: number, outputAspect: number) => {
-  'worklet';
-  return Math.min(1, outputAspect / sourceAspect);
-};
+/** How much of the source a window shows, per axis, as fractions. */
+export type View = { width: number; height: number; zoom: number };
+
+const viewFor = (sourceAspect: number, outputAspect: number, zoom: number): View => ({
+  width: Math.min(1, outputAspect / sourceAspect) / zoom,
+  height: Math.min(1, sourceAspect / outputAspect) / zoom,
+  zoom,
+});
 
 const clamp = (value: number, half: number) => {
   'worklet';
-  return Math.min(Math.max(value, half), 1 - half);
+  return half >= 0.5 ? 0.5 : Math.min(Math.max(value, half), 1 - half);
 };
 
 /** The crop-window center at `time` — pure, called on every drawn frame. */
@@ -118,14 +119,17 @@ export const cameraAt = (path: CameraPath, time: number): { x: number; y: number
 export const buildFollowPath = (
   tracks: FaceTrack[],
   duration: number,
-  cropWidth: number,
+  view: View,
   speakers: SpeakerTurns | null = null
 ): CameraPath => {
+  const cropWidth = view.width;
   const half = cropWidth / 2;
+  const halfY = view.height / 2;
   const samples: CameraPath['samples'] = [];
   const count = Math.max(2, Math.round(duration * PATH_FPS) + 1);
 
   let x = 0.5;
+  let y = 0.5;
   let focused = -1; // index of the track currently framed
   let started = false;
 
@@ -166,6 +170,10 @@ export const buildFollowPath = (
       }
 
       const target = best.x + best.width / 2;
+      // Vertically, aim a little above the face's middle: heads look right
+      // with some room above and the shoulders showing below.
+      const targetY = best.y + best.height * 1.1;
+      y = started ? y + (targetY - y) * FOLLOW_EASE : targetY;
       if (!started) {
         x = target;
         started = true;
@@ -189,18 +197,18 @@ export const buildFollowPath = (
       focused = best.trackIndex;
     }
 
-    samples.push({ time, x: clamp(x, half), y: 0.5, cut });
+    samples.push({ time, x: clamp(x, half), y: clamp(y, halfY), cut });
   }
-  return { samples };
+  return { samples, zoom: view.zoom };
 };
 
 /** Keeps everyone in frame: centered on the bounding box of all faces. */
 export const buildGroupPath = (
   tracks: FaceTrack[],
   duration: number,
-  cropWidth: number
+  view: View
 ): CameraPath => {
-  const half = cropWidth / 2;
+  const half = view.width / 2;
   const samples: CameraPath['samples'] = [];
   const count = Math.max(2, Math.round(duration * PATH_FPS) + 1);
 
@@ -222,33 +230,55 @@ export const buildGroupPath = (
     }
     samples.push({ time, x: clamp(x, half), y: 0.5, cut: false });
   }
-  return { samples };
+  return { samples, zoom: view.zoom };
 };
 
 /** Follows one specific person — one half of the stacked split view. */
-export const buildTrackPath = (
-  track: FaceTrack,
-  duration: number,
-  cropWidth: number
-): CameraPath => buildFollowPath([track], duration, cropWidth);
+export const buildTrackPath = (track: FaceTrack, duration: number, view: View): CameraPath =>
+  buildFollowPath([track], duration, view);
 
 /**
- * Ranks tracks by how much of the segment they own and how big they are:
- * the split view frames the two main speakers, not a passer-by.
+ * The pair of tracks the split view should stack: the two people who are on
+ * screen *at the same time* the longest.
+ *
+ * Picking the two biggest tracks would be wrong on an edited source, where
+ * consecutive close-ups of the same person are the biggest tracks of all and
+ * never coexist — each half would then show the same face, or nothing.
  */
-const mainTracks = (tracks: FaceTrack[], count: number): FaceTrack[] => {
-  const scored = tracks.map((track) => {
-    const span = track.samples[track.samples.length - 1]!.time - track.samples[0]!.time;
-    const size =
-      track.samples.reduce((total, s) => total + s.width * s.height, 0) / track.samples.length;
-    return { track, score: span * Math.sqrt(size) };
+const splitPair = (tracks: FaceTrack[]): [FaceTrack, FaceTrack] | null => {
+  const span = (track: FaceTrack) => ({
+    from: track.samples[0]!.time,
+    to: track.samples[track.samples.length - 1]!.time,
   });
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, count).map((entry) => entry.track);
+  let best: { pair: [FaceTrack, FaceTrack]; overlap: number } | null = null;
+  for (let i = 0; i < tracks.length; i++) {
+    for (let j = i + 1; j < tracks.length; j++) {
+      const a = span(tracks[i]!);
+      const b = span(tracks[j]!);
+      const overlap = Math.min(a.to, b.to) - Math.max(a.from, b.from);
+      if (overlap > (best?.overlap ?? 1)) {
+        // left first, so the top half is the person on the left
+        const meanX = (track: FaceTrack) =>
+          track.samples.reduce((total, s) => total + s.x + s.width / 2, 0) / track.samples.length;
+        const pair: [FaceTrack, FaceTrack] =
+          meanX(tracks[i]!) <= meanX(tracks[j]!)
+            ? [tracks[i]!, tracks[j]!]
+            : [tracks[j]!, tracks[i]!];
+        best = { pair, overlap };
+      }
+    }
+  }
+  return best?.pair ?? null;
 };
 
 /** The exported short is 9:16. */
 export const OUTPUT_ASPECT = 9 / 16;
+
+/**
+ * A half-height window is twice as wide, so a plain cover fit would show
+ * most of the room. The split view tightens in on each person instead.
+ */
+const SPLIT_ZOOM = 1.75;
 
 /**
  * The camera paths for a mode: one window, or two stacked ones for the
@@ -262,14 +292,15 @@ export const buildPaths = (
   sourceAspect: number,
   transcript: Transcript = []
 ): CameraPath[] => {
-  if (mode === 'split' && tracks.length >= 2) {
-    const crop = cropWidthFraction(sourceAspect, OUTPUT_ASPECT * 2);
-    return mainTracks(tracks, 2).map((track) => buildTrackPath(track, duration, crop));
+  const pair = mode === 'split' ? splitPair(tracks) : null;
+  if (pair) {
+    const view = viewFor(sourceAspect, OUTPUT_ASPECT * 2, SPLIT_ZOOM);
+    return pair.map((track) => buildTrackPath(track, duration, view));
   }
-  const crop = cropWidthFraction(sourceAspect, OUTPUT_ASPECT);
+  const view = viewFor(sourceAspect, OUTPUT_ASPECT, 1);
   return [
     mode === 'group'
-      ? buildGroupPath(tracks, duration, crop)
-      : buildFollowPath(tracks, duration, crop, buildSpeakerTurns(transcript)),
+      ? buildGroupPath(tracks, duration, view)
+      : buildFollowPath(tracks, duration, view, buildSpeakerTurns(transcript)),
   ];
 };

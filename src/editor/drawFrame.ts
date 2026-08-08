@@ -34,7 +34,8 @@ const drawWindow = (
   canvas: SkCanvas,
   frame: VideoFrame,
   dest: Rect,
-  center: { x: number; y: number }
+  center: { x: number; y: number },
+  zoom: number
 ) => {
   'worklet';
   const image = Skia.Image.MakeImageFromNativeTextureUnstable(
@@ -45,7 +46,7 @@ const drawWindow = (
   const rotated = frame.rotation % 180 !== 0;
   const visibleWidth = rotated ? image.height() : image.width();
   const visibleHeight = rotated ? image.width() : image.height();
-  const scale = Math.max(dest.width / visibleWidth, dest.height / visibleHeight);
+  const scale = Math.max(dest.width / visibleWidth, dest.height / visibleHeight) * zoom;
 
   // How far the requested center sits from the frame's own center, in
   // destination pixels — the camera pan, in other words.
@@ -110,7 +111,8 @@ export const drawFrame = (options: DrawFrameOptions) => {
   const windowHeight = height / Math.max(windows, 1);
   for (let i = 0; i < windows; i++) {
     const dest = { x: 0, y: i * windowHeight, width, height: windowHeight };
-    drawWindow(canvas, frame, dest, cameraAt(options.paths[i]!, currentTime));
+    const path = options.paths[i]!;
+    drawWindow(canvas, frame, dest, cameraAt(path, currentTime), path.zoom);
   }
 
   if (settings.showCaptions) {
