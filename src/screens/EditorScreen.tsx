@@ -14,6 +14,8 @@ import { Icon, type IconName } from '../components/ui/icon';
 import { Text } from '../components/ui/text';
 import { VideoPreview } from '../components/VideoPreview';
 import { analyzeSegment } from '../editor/analyzeVideo';
+import { tryDecodeEnvelope } from '../editor/audio';
+import type { AudioEnvelope } from '../editor/audio';
 import { loadSample, SAMPLE_SEGMENT } from '../editor/assets';
 import { buildPaths } from '../editor/camera';
 import { buildFaceTracks } from '../editor/faceTracks';
@@ -39,6 +41,23 @@ export const EditorScreen = () => {
   const [stage, setStage] = useState<Stage>({ name: 'empty' });
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [sheet, setSheet] = useState<SheetId>(null);
+  /**
+   * The picking stage's ears — decoded in the background while the user
+   * looks at the filmstrip, null until ready (or forever on long sources).
+   */
+  const [pickerEnvelope, setPickerEnvelope] = useState<AudioEnvelope | null>(null);
+  const pickingUri = stage.name === 'picking' ? stage.video : null;
+  useEffect(() => {
+    setPickerEnvelope(null);
+    if (!pickingUri) return;
+    let cancelled = false;
+    tryDecodeEnvelope(pickingUri).then((envelope) => {
+      if (!cancelled) setPickerEnvelope(envelope);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pickingUri]);
 
   const project = stage.name === 'ready' ? stage.project : null;
 
@@ -128,6 +147,7 @@ export const EditorScreen = () => {
       {stage.name === 'picking' ? (
         <SegmentPicker
           video={stage.video}
+          envelope={pickerEnvelope}
           onConfirm={(segment) => analyze(stage.video, segment)}
         />
       ) : (

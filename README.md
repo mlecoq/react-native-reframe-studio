@@ -19,6 +19,10 @@ the one that puts two of their engines together.
 
 - ✂️ **Pick the moment** on a filmstrip with two draggable handles — a
   podcast can be hours long, only the chosen clip is ever analyzed
+- 👂 **A picker that listens**: on sources short enough to decode, the audio
+  track is decoded on-device (react-native-audio-api) — waveform under the
+  filmstrip, handles that snap to pauses so the clip never starts mid-word,
+  and the most **talkative moments** suggested as one-tap chips
 - 🎥 **Virtual camera** that follows the speaker: a dead zone so small
   wobbles don't move the frame, capped speed so pans stay smooth, and hard
   **cuts** when the conversation jumps to someone else
@@ -54,6 +58,20 @@ work ([`analyzeVideo.ts`](src/editor/analyzeVideo.ts)). Trimming itself is
 free: `startTime` on the composition item tells the decoder where to begin,
 so nothing is copied or re-encoded first
 ([`composition.ts`](src/editor/composition.ts)).
+
+### The picker listens before you choose
+
+On sources short enough to decode in one piece (~15 minutes — `decodeAudioData`
+has no ranged decode yet), the audio track is decoded to PCM on-device with
+[react-native-audio-api](https://github.com/software-mansion/react-native-audio-api)
+and reduced to a loudness envelope ([`audio.ts`](src/editor/audio.ts)). The
+picker uses those ears three ways ([`moments.ts`](src/editor/moments.ts)):
+the waveform is drawn under the filmstrip, a released handle snaps to the
+middle of the nearest pause — a clip should never start mid-word — and the
+most *talkative* 30-second windows (speech density plus a little mean
+energy: lively exchanges beat dead air) are offered as one-tap suggested
+moments. It is all best-effort: on an hours-long podcast the decode is
+skipped and the picker works exactly as before.
 
 ### The camera is a loop, not a formula
 
@@ -118,6 +136,8 @@ icons [Remix Icon](https://remixicon.com/) (Apache 2.0).
 ## Credits
 
 Built on [@azzapp/react-native-skia-video](https://github.com/AzzappApp/react-native-skia-video)
-([documentation](https://azzappapp.github.io/react-native-skia-video/)).
+([documentation](https://azzappapp.github.io/react-native-skia-video/)), with
+[react-native-audio-api](https://github.com/software-mansion/react-native-audio-api)
+lending the picker its ears.
 
 MIT — see [LICENSE](LICENSE).

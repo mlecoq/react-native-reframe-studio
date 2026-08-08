@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Image, View } from 'react-native';
+import { Canvas, Path, Skia } from '@shopify/react-native-skia';
+import { useEffect, useMemo, useState } from 'react';
+import { Image, Pressable, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import type { AudioEnvelope } from '../editor/audio';
+import { findSilences, snapToSilence, suggestMoments } from '../editor/moments';
 import type { Segment, SourceVideo } from '../editor/types';
 import { Button } from './ui/button';
 import { Icon } from './ui/icon';
@@ -13,6 +16,7 @@ const THUMBS = 12;
 const MIN_DURATION = 5;
 const MAX_DURATION = 90;
 const HANDLE = 22;
+const WAVE_HEIGHT = 36;
 
 const formatTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -27,12 +31,20 @@ const formatTime = (seconds: number) => {
  * across a two-hour podcast would take forever, while analyzing the 30
  * seconds actually kept takes a few seconds. Choosing first makes the cost
  * proportional to the clip, not to the source.
+ *
+ * When the source is short enough to decode its audio in one piece, the
+ * picker also LISTENS (see editor/audio.ts): the loudness envelope is drawn
+ * under the filmstrip, released handles snap to the nearest pause so the
+ * clip never starts mid-word, and the most talkative windows are offered as
+ * suggested moments. All of it degrades away silently on very long sources.
  */
 export const SegmentPicker = ({
   video,
+  envelope,
   onConfirm,
 }: {
   video: SourceVideo;
+  envelope: AudioEnvelope | null;
   onConfirm: (segment: Segment) => void;
 }) => {
   const [strip, setStrip] = useState<string[]>([]);
@@ -63,14 +75,58 @@ export const SegmentPicker = ({
     };
   }, [video]);
 
+  const silences = useMemo(() => (envelope ? findSilences(envelope) : []), [envelope]);
+  const moments = useMemo(() => (envelope ? suggestMoments(envelope) : []), [envelope]);
+
+  // The loudness envelope as bars along the bottom of the filmstrip.
+  const wavePath = useMemo(() => {
+    if (!envelope || trackWidth === 0) return null;
+    const path = Skia.Path.Make();
+    const count = Math.floor(trackWidth / 4);
+    const perBar = envelope.values.length / count;
+    for (let i = 0; i < count; i++) {
+      let peak = 0;
+      const from = Math.floor(i * perBar);
+      const to = Math.min(Math.ceil((i + 1) * perBar), envelope.values.length);
+      for (let j = from; j < to; j++) peak = Math.max(peak, envelope.values[j]!);
+      const height = Math.max(2, peak * (WAVE_HEIGHT - 6));
+      path.addRRect(
+        Skia.RRectXY(Skia.XYWHRect(i * 4, WAVE_HEIGHT - height, 2.5, height), 1.2, 1.2)
+      );
+    }
+    return path;
+  }, [envelope, trackWidth]);
+
   // Handle positions live as fractions of the video duration: shared values
   // while dragging (no React render per finger move), state on release.
   const startFraction = useSharedValue(segment.start / video.duration);
   const endFraction = useSharedValue((segment.start + segment.duration) / video.duration);
 
-  const commit = (start: number, end: number) => {
-    setSegment({ start: start * video.duration, duration: (end - start) * video.duration });
+  /**
+   * Lands a released selection: each edge snaps to the middle of the nearest
+   * pause (a clip should never start mid-word) as long as the snapped pair
+   * still respects the duration bounds — tried both edges, then one, then
+   * none. The handles visually settle onto the snapped position.
+   */
+  const commitSeconds = (rawStart: number, rawEnd: number) => {
+    const snappedStart = snapToSilence(rawStart, silences);
+    const snappedEnd = snapToSilence(rawEnd, silences);
+    const valid = (start: number, end: number) =>
+      end - start >= MIN_DURATION && end - start <= MAX_DURATION && start >= 0 && end <= video.duration;
+    const [start, end] = valid(snappedStart, snappedEnd)
+      ? [snappedStart, snappedEnd]
+      : valid(snappedStart, rawEnd)
+        ? [snappedStart, rawEnd]
+        : valid(rawStart, snappedEnd)
+          ? [rawStart, snappedEnd]
+          : [rawStart, rawEnd];
+    startFraction.value = start / video.duration;
+    endFraction.value = end / video.duration;
+    setSegment({ start, duration: end - start });
   };
+
+  const commit = (start: number, end: number) =>
+    commitSeconds(start * video.duration, end * video.duration);
 
   const minFraction = MIN_DURATION / video.duration;
   const maxFraction = MAX_DURATION / video.duration;
@@ -134,15 +190,43 @@ export const SegmentPicker = ({
     width: (1 - endFraction.value) * trackWidth,
   }));
 
+  const isActiveMoment = (start: number) => Math.abs(segment.start - start) < 1;
+
   return (
     <View className="flex-1 justify-center gap-6 px-5">
       <View className="items-center gap-2">
         <Icon name="scissors-cut-line" size={36} color="#F97316" />
         <Text className="text-center text-lg">Pick the moment</Text>
         <Text className="text-center text-sm text-muted">
-          Drag the handles — only this part gets analyzed{'\n'}and turned into a vertical short.
+          {envelope
+            ? 'Drag the handles — they snap to pauses, so the\nclip never starts mid-word.'
+            : 'Drag the handles — only this part gets analyzed\nand turned into a vertical short.'}
         </Text>
       </View>
+
+      {moments.length > 0 && (
+        <View className="flex-row items-center justify-center gap-2">
+          <Icon name="sparkling-line" size={16} color="#F97316" />
+          <Text className="text-sm text-muted">Talkative moments:</Text>
+          {moments.map((moment) => (
+            <Pressable
+              key={moment.start}
+              onPress={() => commitSeconds(moment.start, moment.start + moment.duration)}
+              className={`rounded-full border px-3 py-1 active:opacity-70 ${
+                isActiveMoment(moment.start)
+                  ? 'border-accent bg-accent/15'
+                  : 'border-border bg-surface-2'
+              }`}
+            >
+              <Text
+                className={`text-sm ${isActiveMoment(moment.start) ? 'text-accent' : 'text-muted'}`}
+              >
+                {formatTime(moment.start)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       <View>
         <View
@@ -156,6 +240,17 @@ export const SegmentPicker = ({
               ) : null}
             </View>
           ))}
+          {wavePath && (
+            <View
+              pointerEvents="none"
+              className="absolute bottom-0 left-0 right-0 bg-background/40"
+              style={{ height: WAVE_HEIGHT }}
+            >
+              <Canvas style={{ width: trackWidth, height: WAVE_HEIGHT }}>
+                <Path path={wavePath} color="rgba(243, 246, 250, 0.85)" />
+              </Canvas>
+            </View>
+          )}
         </View>
 
         {/* Everything outside the window is dimmed. */}
