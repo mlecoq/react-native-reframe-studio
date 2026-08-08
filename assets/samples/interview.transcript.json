@@ -1,0 +1,268 @@
+{
+  "segments": [
+    {
+      "id": 0,
+      "start": 0.6,
+      "end": 3.69,
+      "text": "So, you spent a year building video tools for phones.",
+      "words": [
+        {
+          "word": "So,",
+          "start": 0.6,
+          "end": 0.82
+        },
+        {
+          "word": " you",
+          "start": 0.84,
+          "end": 1.06
+        },
+        {
+          "word": " spent",
+          "start": 1.08,
+          "end": 1.39
+        },
+        {
+          "word": " a",
+          "start": 1.42,
+          "end": 1.55
+        },
+        {
+          "word": " year",
+          "start": 1.56,
+          "end": 1.83
+        },
+        {
+          "word": " building",
+          "start": 1.85,
+          "end": 2.3
+        },
+        {
+          "word": " video",
+          "start": 2.34,
+          "end": 2.65
+        },
+        {
+          "word": " tools",
+          "start": 2.67,
+          "end": 2.98
+        },
+        {
+          "word": " for",
+          "start": 3.01,
+          "end": 3.23
+        },
+        {
+          "word": " phones.",
+          "start": 3.25,
+          "end": 3.65
+        }
+      ],
+      "speaker": 0
+    },
+    {
+      "id": 1,
+      "start": 4.04,
+      "end": 5.58,
+      "text": "Almost two, actually.",
+      "words": [
+        {
+          "word": "Almost",
+          "start": 4.04,
+          "end": 4.49
+        },
+        {
+          "word": " two,",
+          "start": 4.53,
+          "end": 4.87
+        },
+        {
+          "word": " actually.",
+          "start": 4.9,
+          "end": 5.53
+        }
+      ],
+      "speaker": 1
+    },
+    {
+      "id": 2,
+      "start": 5.93,
+      "end": 7.4,
+      "text": "What surprised you the most?",
+      "words": [
+        {
+          "word": "What",
+          "start": 5.93,
+          "end": 6.17
+        },
+        {
+          "word": " surprised",
+          "start": 6.19,
+          "end": 6.62
+        },
+        {
+          "word": " you",
+          "start": 6.66,
+          "end": 6.86
+        },
+        {
+          "word": " the",
+          "start": 6.88,
+          "end": 7.08
+        },
+        {
+          "word": " most?",
+          "start": 7.09,
+          "end": 7.37
+        }
+      ],
+      "speaker": 0
+    },
+    {
+      "id": 3,
+      "start": 7.75,
+      "end": 11.04,
+      "text": "That the hard part was never the rendering. It was the timing.",
+      "words": [
+        {
+          "word": "That",
+          "start": 7.75,
+          "end": 7.99
+        },
+        {
+          "word": " the",
+          "start": 8.01,
+          "end": 8.21
+        },
+        {
+          "word": " hard",
+          "start": 8.23,
+          "end": 8.47
+        },
+        {
+          "word": " part",
+          "start": 8.49,
+          "end": 8.74
+        },
+        {
+          "word": " was",
+          "start": 8.76,
+          "end": 8.96
+        },
+        {
+          "word": " never",
+          "start": 8.98,
+          "end": 9.26
+        },
+        {
+          "word": " the",
+          "start": 9.28,
+          "end": 9.49
+        },
+        {
+          "word": " rendering.",
+          "start": 9.5,
+          "end": 9.99
+        },
+        {
+          "word": " It",
+          "start": 10.03,
+          "end": 10.19
+        },
+        {
+          "word": " was",
+          "start": 10.21,
+          "end": 10.41
+        },
+        {
+          "word": " the",
+          "start": 10.43,
+          "end": 10.63
+        },
+        {
+          "word": " timing.",
+          "start": 10.65,
+          "end": 11.01
+        }
+      ],
+      "speaker": 1
+    },
+    {
+      "id": 4,
+      "start": 11.39,
+      "end": 12.08,
+      "text": "The timing?",
+      "words": [
+        {
+          "word": "The",
+          "start": 11.39,
+          "end": 11.62
+        },
+        {
+          "word": " timing?",
+          "start": 11.64,
+          "end": 12.05
+        }
+      ],
+      "speaker": 0
+    },
+    {
+      "id": 5,
+      "start": 12.43,
+      "end": 15.66,
+      "text": "Every frame has to agree. The preview, and the export.",
+      "words": [
+        {
+          "word": "Every",
+          "start": 12.43,
+          "end": 12.75
+        },
+        {
+          "word": " frame",
+          "start": 12.78,
+          "end": 13.1
+        },
+        {
+          "word": " has",
+          "start": 13.13,
+          "end": 13.36
+        },
+        {
+          "word": " to",
+          "start": 13.38,
+          "end": 13.56
+        },
+        {
+          "word": " agree.",
+          "start": 13.58,
+          "end": 13.94
+        },
+        {
+          "word": " The",
+          "start": 13.97,
+          "end": 14.2
+        },
+        {
+          "word": " preview,",
+          "start": 14.22,
+          "end": 14.68
+        },
+        {
+          "word": " and",
+          "start": 14.72,
+          "end": 14.95
+        },
+        {
+          "word": " the",
+          "start": 14.97,
+          "end": 15.19
+        },
+        {
+          "word": " export.",
+          "start": 15.21,
+          "end": 15.63
+        }
+      ],
+      "speaker": 1
+    }
+  ]
+}

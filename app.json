@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Reframe Studio",
+    "slug": "react-native-reframe-studio",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0A0E14",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.reframestudio"
+    },
+    "android": {
+      "package": "com.example.reframestudio",
+      "adaptiveIcon": {
+        "backgroundColor": "#2A1206",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0A0E14"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your videos so it can turn a moment into a vertical short."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "savePhotosPermission": "The app saves your exported videos to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ]
+    ]
+  }
+}

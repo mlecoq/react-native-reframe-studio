@@ -1,0 +1,19 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'expo-module-gradle-plugin'
+
+group = 'expo.modules.facedetector'
+version = '1.0.0'
+
+android {
+  namespace 'expo.modules.facedetector'
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // Google's on-device face detector (the model ships in the APK).
+  implementation 'com.google.mlkit:face-detection:16.1.7'
+}
