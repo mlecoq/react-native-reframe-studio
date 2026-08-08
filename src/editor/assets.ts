@@ -5,10 +5,10 @@ import { registerFontFile } from './fonts';
 import type { FaceAnalysis, SourceVideo } from './types';
 
 /**
- * Bundled content: a landscape interview whose face analysis and word-level
- * transcript were precomputed at build time and ship as JSON — the exact
- * shapes the on-device analysis and the transcript parser produce. Plus the
- * caption fonts.
+ * Bundled content: a landscape NASA interview (public domain) whose face
+ * analysis and word-level transcript were precomputed at build time and ship
+ * as JSON — the exact shapes the on-device analysis and the transcript
+ * parser produce. Plus the caption fonts.
  */
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -24,8 +24,11 @@ const FONT_FILES: Record<string, number> = {
 };
 /* eslint-enable @typescript-eslint/no-require-imports */
 
-/** Where the bundled sample's precomputed analysis starts, in the file. */
-export const SAMPLE_SEGMENT = { start: 0, duration: 17 };
+/**
+ * The moment the bundled sample's precomputed analysis covers — a question
+ * and its answer, 68 seconds into a three-and-a-half minute interview.
+ */
+export const SAMPLE_SEGMENT = { start: 68, duration: 24 };
 
 const localUri = async (module: number) => {
   const asset = Asset.fromModule(module);
@@ -40,9 +43,9 @@ export const loadSample = async (): Promise<{
 }> => ({
   video: {
     uri: await localUri(SAMPLE_VIDEO),
-    width: 1280,
-    height: 720,
-    duration: 17,
+    width: 640,
+    height: 360,
+    duration: 205.8,
   },
   faces: SAMPLE_FACES,
   // The transcript ships as-is from Whisper — same parser as user input.

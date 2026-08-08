@@ -22,6 +22,8 @@ the one that puts two of their engines together.
 - 🎥 **Virtual camera** that follows the speaker: a dead zone so small
   wobbles don't move the frame, capped speed so pans stay smooth, and hard
   **cuts** when the conversation jumps to someone else
+- 🗣 **Speaker turns** from a diarized transcript, so the camera knows *who*
+  is talking — not just who is biggest
 - 🖼 **Three framings**: Follow (one moving window), Group (everyone in
   frame), Split (two speakers stacked — the podcast-clip look)
 - 💬 **Captions** with four styles, drag to place, from an SRT or a Whisper
@@ -71,6 +73,22 @@ render loop:
 The result is a path of samples. The worklet only interpolates it
 (`cameraAt`), and never interpolates *across* a cut.
 
+### Knowing who is talking
+
+Face size cannot tell two guests apart in a two-shot — which is why every
+clip tool leans on audio. We don't decode audio, but a **diarized**
+transcript carries the same information for free (AssemblyAI's
+`speaker_labels`, Whisper + pyannote…), so when phrases have speaker labels
+the camera follows the turns.
+
+A turn stores a *rank*, not a face: speakers are numbered by order of first
+appearance and matched, at each instant, to the faces on screen sorted left
+to right. That survives what track identities cannot — the bundled sample is
+*itself* an edited interview that cuts between a wide shot and close-ups, so
+the same person is a different track before and after each of the source's
+own cuts. And when a single face is on screen, there is nothing to decide:
+the source's editor already chose.
+
 ### Two spaces that never meet
 
 [`drawFrame.ts`](src/editor/drawFrame.ts) draws the video through one or two
@@ -82,12 +100,20 @@ was cropped.
 
 ## Bundled assets
 
-The sample interview is generated content — the set, the two guests and
-their synthesized voices — so it is free to reuse, and it ships the two JSON
-files the app would otherwise compute on device: the face analysis and the
-word-level transcript. Fonts (Poppins, Archivo Black) under the
-[SIL OFL](assets/fonts/OFL.txt); icons [Remix Icon](https://remixicon.com/)
-(Apache 2.0).
+The sample is a NASA interview with astronauts Jessica Meir and Christina
+Koch (Expedition 59, NASA/JSC — public domain), and it ships the two JSON
+files the app would otherwise compute on device:
+
+- the **face analysis**, from the same class of detector the phone runs;
+- the **word-level transcript**, from an offline speech-to-text pass, with a
+  speaker label per phrase obtained from **mouth motion**: the source camera
+  is static, so the pixels under a face move far more while that person is
+  talking. It is the visual half of what audio diarization does, it needs no
+  extra model, and it runs at build time — see the generator in this repo's
+  history.
+
+Fonts (Poppins, Archivo Black) under the [SIL OFL](assets/fonts/OFL.txt);
+icons [Remix Icon](https://remixicon.com/) (Apache 2.0).
 
 ## Credits
 

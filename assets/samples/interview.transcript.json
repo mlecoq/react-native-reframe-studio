@@ -2,267 +2,569 @@
   "segments": [
     {
       "id": 0,
-      "start": 0.6,
-      "end": 3.69,
-      "text": "So, you spent a year building video tools for phones.",
+      "speaker": 0,
+      "start": 0,
+      "end": 0.9,
+      "text": "ALL",
       "words": [
         {
-          "word": "So,",
-          "start": 0.6,
-          "end": 0.82
-        },
-        {
-          "word": " you",
-          "start": 0.84,
-          "end": 1.06
-        },
-        {
-          "word": " spent",
-          "start": 1.08,
-          "end": 1.39
-        },
-        {
-          "word": " a",
-          "start": 1.42,
-          "end": 1.55
-        },
-        {
-          "word": " year",
-          "start": 1.56,
-          "end": 1.83
-        },
-        {
-          "word": " building",
-          "start": 1.85,
-          "end": 2.3
-        },
-        {
-          "word": " video",
-          "start": 2.34,
-          "end": 2.65
-        },
-        {
-          "word": " tools",
-          "start": 2.67,
-          "end": 2.98
-        },
-        {
-          "word": " for",
-          "start": 3.01,
-          "end": 3.23
-        },
-        {
-          "word": " phones.",
-          "start": 3.25,
-          "end": 3.65
+          "word": "ALL",
+          "start": 0,
+          "end": 0.9
         }
-      ],
-      "speaker": 0
+      ]
     },
     {
       "id": 1,
-      "start": 4.04,
-      "end": 5.58,
-      "text": "Almost two, actually.",
+      "speaker": 1,
+      "start": 1.36,
+      "end": 3.34,
+      "text": "RIGHT AND IN JESSICA I KNOW A",
       "words": [
         {
-          "word": "Almost",
-          "start": 4.04,
-          "end": 4.49
+          "word": "RIGHT",
+          "start": 1.36,
+          "end": 1.74
         },
         {
-          "word": " two,",
-          "start": 4.53,
-          "end": 4.87
+          "word": " AND",
+          "start": 1.76,
+          "end": 1.9
         },
         {
-          "word": " actually.",
-          "start": 4.9,
-          "end": 5.53
+          "word": " IN",
+          "start": 1.92,
+          "end": 2.06
+        },
+        {
+          "word": " JESSICA",
+          "start": 2.08,
+          "end": 2.62
+        },
+        {
+          "word": " I",
+          "start": 2.64,
+          "end": 2.78
+        },
+        {
+          "word": " KNOW",
+          "start": 2.8,
+          "end": 3.02
+        },
+        {
+          "word": " A",
+          "start": 3.04,
+          "end": 3.34
         }
-      ],
-      "speaker": 1
+      ]
     },
     {
       "id": 2,
-      "start": 5.93,
-      "end": 7.4,
-      "text": "What surprised you the most?",
+      "speaker": 1,
+      "start": 3.36,
+      "end": 5.22,
+      "text": "YOU HAVE BEEN TRAINING FOR YEARS FOR",
       "words": [
         {
-          "word": "What",
-          "start": 5.93,
-          "end": 6.17
+          "word": "YOU",
+          "start": 3.36,
+          "end": 3.66
         },
         {
-          "word": " surprised",
-          "start": 6.19,
-          "end": 6.62
+          "word": " HAVE",
+          "start": 3.68,
+          "end": 3.86
         },
         {
-          "word": " you",
-          "start": 6.66,
-          "end": 6.86
+          "word": " BEEN",
+          "start": 3.88,
+          "end": 4.14
         },
         {
-          "word": " the",
-          "start": 6.88,
-          "end": 7.08
+          "word": " TRAINING",
+          "start": 4.16,
+          "end": 4.58
         },
         {
-          "word": " most?",
-          "start": 7.09,
-          "end": 7.37
+          "word": " FOR",
+          "start": 4.6,
+          "end": 4.78
+        },
+        {
+          "word": " YEARS",
+          "start": 4.8,
+          "end": 5.02
+        },
+        {
+          "word": " FOR",
+          "start": 5.04,
+          "end": 5.22
         }
-      ],
-      "speaker": 0
+      ]
     },
     {
       "id": 3,
-      "start": 7.75,
-      "end": 11.04,
-      "text": "That the hard part was never the rendering. It was the timing.",
+      "speaker": 1,
+      "start": 5.24,
+      "end": 6.82,
+      "text": "THIS AND I IT'S VERY EXCITING BUT",
       "words": [
         {
-          "word": "That",
-          "start": 7.75,
-          "end": 7.99
+          "word": "THIS",
+          "start": 5.24,
+          "end": 5.42
         },
         {
-          "word": " the",
-          "start": 8.01,
-          "end": 8.21
+          "word": " AND",
+          "start": 5.44,
+          "end": 5.58
         },
         {
-          "word": " hard",
-          "start": 8.23,
-          "end": 8.47
+          "word": " I",
+          "start": 5.6,
+          "end": 5.74
         },
         {
-          "word": " part",
-          "start": 8.49,
-          "end": 8.74
+          "word": " IT'S",
+          "start": 5.76,
+          "end": 5.98
         },
         {
-          "word": " was",
-          "start": 8.76,
-          "end": 8.96
+          "word": " VERY",
+          "start": 6,
+          "end": 6.18
         },
         {
-          "word": " never",
-          "start": 8.98,
-          "end": 9.26
+          "word": " EXCITING",
+          "start": 6.2,
+          "end": 6.58
         },
         {
-          "word": " the",
-          "start": 9.28,
-          "end": 9.49
-        },
-        {
-          "word": " rendering.",
-          "start": 9.5,
-          "end": 9.99
-        },
-        {
-          "word": " It",
-          "start": 10.03,
-          "end": 10.19
-        },
-        {
-          "word": " was",
-          "start": 10.21,
-          "end": 10.41
-        },
-        {
-          "word": " the",
-          "start": 10.43,
-          "end": 10.63
-        },
-        {
-          "word": " timing.",
-          "start": 10.65,
-          "end": 11.01
+          "word": " BUT",
+          "start": 6.6,
+          "end": 6.82
         }
-      ],
-      "speaker": 1
+      ]
     },
     {
       "id": 4,
-      "start": 11.39,
-      "end": 12.08,
-      "text": "The timing?",
+      "speaker": 1,
+      "start": 6.84,
+      "end": 8.46,
+      "text": "DO YOU HAVE TIME TO CELEBRATE FOR",
       "words": [
         {
-          "word": "The",
-          "start": 11.39,
-          "end": 11.62
+          "word": "DO",
+          "start": 6.84,
+          "end": 6.94
         },
         {
-          "word": " timing?",
-          "start": 11.64,
-          "end": 12.05
+          "word": " YOU",
+          "start": 6.96,
+          "end": 7.1
+        },
+        {
+          "word": " HAVE",
+          "start": 7.12,
+          "end": 7.3
+        },
+        {
+          "word": " TIME",
+          "start": 7.32,
+          "end": 7.5
+        },
+        {
+          "word": " TO",
+          "start": 7.52,
+          "end": 7.66
+        },
+        {
+          "word": " CELEBRATE",
+          "start": 7.68,
+          "end": 8.3
+        },
+        {
+          "word": " FOR",
+          "start": 8.32,
+          "end": 8.46
         }
-      ],
-      "speaker": 0
+      ]
     },
     {
       "id": 5,
-      "start": 12.43,
-      "end": 15.66,
-      "text": "Every frame has to agree. The preview, and the export.",
+      "speaker": 1,
+      "start": 8.48,
+      "end": 10.34,
+      "text": "YOUR MISSION OR YOU TO DIZZY TRAINING",
       "words": [
         {
-          "word": "Every",
-          "start": 12.43,
-          "end": 12.75
+          "word": "YOUR",
+          "start": 8.48,
+          "end": 8.62
         },
         {
-          "word": " frame",
-          "start": 12.78,
-          "end": 13.1
+          "word": " MISSION",
+          "start": 8.64,
+          "end": 8.94
         },
         {
-          "word": " has",
-          "start": 13.13,
-          "end": 13.36
+          "word": " OR",
+          "start": 8.96,
+          "end": 9.1
         },
         {
-          "word": " to",
-          "start": 13.38,
-          "end": 13.56
+          "word": " YOU",
+          "start": 9.12,
+          "end": 9.26
         },
         {
-          "word": " agree.",
-          "start": 13.58,
+          "word": " TO",
+          "start": 9.28,
+          "end": 9.38
+        },
+        {
+          "word": " DIZZY",
+          "start": 9.4,
+          "end": 9.66
+        },
+        {
+          "word": " TRAINING",
+          "start": 9.68,
+          "end": 10.34
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "speaker": 0,
+      "start": 10.36,
+      "end": 12.14,
+      "text": "I TRYING TO CELEBRATE THE LITTLE BUT",
+      "words": [
+        {
+          "word": "I",
+          "start": 10.36,
+          "end": 10.66
+        },
+        {
+          "word": " TRYING",
+          "start": 10.68,
+          "end": 10.86
+        },
+        {
+          "word": " TO",
+          "start": 10.88,
+          "end": 10.98
+        },
+        {
+          "word": " CELEBRATE",
+          "start": 11,
+          "end": 11.5
+        },
+        {
+          "word": " THE",
+          "start": 11.52,
+          "end": 11.62
+        },
+        {
+          "word": " LITTLE",
+          "start": 11.64,
+          "end": 11.98
+        },
+        {
+          "word": " BUT",
+          "start": 12,
+          "end": 12.14
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "speaker": 0,
+      "start": 12.16,
+      "end": 13.82,
+      "text": "YOU'RE RIGHT WE'VE BEEN WORKING REALLY HARD",
+      "words": [
+        {
+          "word": "YOU'RE",
+          "start": 12.16,
+          "end": 12.42
+        },
+        {
+          "word": " RIGHT",
+          "start": 12.44,
+          "end": 12.58
+        },
+        {
+          "word": " WE'VE",
+          "start": 12.6,
+          "end": 12.78
+        },
+        {
+          "word": " BEEN",
+          "start": 12.8,
+          "end": 12.94
+        },
+        {
+          "word": " WORKING",
+          "start": 12.96,
+          "end": 13.26
+        },
+        {
+          "word": " REALLY",
+          "start": 13.28,
+          "end": 13.58
+        },
+        {
+          "word": " HARD",
+          "start": 13.6,
+          "end": 13.82
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "speaker": 0,
+      "start": 13.84,
+      "end": 15.34,
+      "text": "THE WHOLE TIME SINCE WE WERE SELECTED",
+      "words": [
+        {
+          "word": "THE",
+          "start": 13.84,
           "end": 13.94
         },
         {
-          "word": " The",
-          "start": 13.97,
-          "end": 14.2
+          "word": " WHOLE",
+          "start": 13.96,
+          "end": 14.14
         },
         {
-          "word": " preview,",
-          "start": 14.22,
-          "end": 14.68
+          "word": " TIME",
+          "start": 14.16,
+          "end": 14.38
         },
         {
-          "word": " and",
-          "start": 14.72,
-          "end": 14.95
+          "word": " SINCE",
+          "start": 14.4,
+          "end": 14.58
         },
         {
-          "word": " the",
-          "start": 14.97,
-          "end": 15.19
+          "word": " WE",
+          "start": 14.6,
+          "end": 14.74
         },
         {
-          "word": " export.",
-          "start": 15.21,
-          "end": 15.63
+          "word": " WERE",
+          "start": 14.76,
+          "end": 14.86
+        },
+        {
+          "word": " SELECTED",
+          "start": 14.88,
+          "end": 15.34
         }
-      ],
-      "speaker": 1
+      ]
+    },
+    {
+      "id": 9,
+      "speaker": 0,
+      "start": 15.36,
+      "end": 17.5,
+      "text": "BACK AS ASTRONIC CANDIDATES IN TWENTY THIRTEEN",
+      "words": [
+        {
+          "word": "BACK",
+          "start": 15.36,
+          "end": 15.5
+        },
+        {
+          "word": " AS",
+          "start": 15.52,
+          "end": 15.66
+        },
+        {
+          "word": " ASTRONIC",
+          "start": 15.68,
+          "end": 16.1
+        },
+        {
+          "word": " CANDIDATES",
+          "start": 16.12,
+          "end": 16.54
+        },
+        {
+          "word": " IN",
+          "start": 16.56,
+          "end": 16.66
+        },
+        {
+          "word": " TWENTY",
+          "start": 16.68,
+          "end": 16.94
+        },
+        {
+          "word": " THIRTEEN",
+          "start": 16.96,
+          "end": 17.5
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "speaker": 0,
+      "start": 17.52,
+      "end": 19.14,
+      "text": "AND TO LAST YEAR WHEN I STARTED",
+      "words": [
+        {
+          "word": "AND",
+          "start": 17.52,
+          "end": 17.74
+        },
+        {
+          "word": " TO",
+          "start": 17.76,
+          "end": 17.98
+        },
+        {
+          "word": " LAST",
+          "start": 18,
+          "end": 18.22
+        },
+        {
+          "word": " YEAR",
+          "start": 18.24,
+          "end": 18.5
+        },
+        {
+          "word": " WHEN",
+          "start": 18.52,
+          "end": 18.66
+        },
+        {
+          "word": " I",
+          "start": 18.68,
+          "end": 18.78
+        },
+        {
+          "word": " STARTED",
+          "start": 18.8,
+          "end": 19.14
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "speaker": 0,
+      "start": 19.16,
+      "end": 21.02,
+      "text": "TRAINING FOR A SPACATION FLIGHT IN OVER",
+      "words": [
+        {
+          "word": "TRAINING",
+          "start": 19.16,
+          "end": 19.54
+        },
+        {
+          "word": " FOR",
+          "start": 19.56,
+          "end": 19.7
+        },
+        {
+          "word": " A",
+          "start": 19.72,
+          "end": 19.9
+        },
+        {
+          "word": " SPACATION",
+          "start": 19.92,
+          "end": 20.42
+        },
+        {
+          "word": " FLIGHT",
+          "start": 20.44,
+          "end": 20.7
+        },
+        {
+          "word": " IN",
+          "start": 20.72,
+          "end": 20.82
+        },
+        {
+          "word": " OVER",
+          "start": 20.84,
+          "end": 21.02
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "speaker": 0,
+      "start": 21.04,
+      "end": 22.94,
+      "text": "IN RUSSIA AS WELL SO THEY KEEP",
+      "words": [
+        {
+          "word": "IN",
+          "start": 21.04,
+          "end": 21.18
+        },
+        {
+          "word": " RUSSIA",
+          "start": 21.2,
+          "end": 21.62
+        },
+        {
+          "word": " AS",
+          "start": 21.64,
+          "end": 21.82
+        },
+        {
+          "word": " WELL",
+          "start": 21.84,
+          "end": 22.14
+        },
+        {
+          "word": " SO",
+          "start": 22.16,
+          "end": 22.54
+        },
+        {
+          "word": " THEY",
+          "start": 22.56,
+          "end": 22.78
+        },
+        {
+          "word": " KEEP",
+          "start": 22.8,
+          "end": 22.94
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "speaker": 0,
+      "start": 22.96,
+      "end": 24.12,
+      "text": "US INCREDIBLY BUSY",
+      "words": [
+        {
+          "word": "US",
+          "start": 22.96,
+          "end": 23.1
+        },
+        {
+          "word": " INCREDIBLY",
+          "start": 23.12,
+          "end": 23.7
+        },
+        {
+          "word": " BUSY",
+          "start": 23.72,
+          "end": 24.12
+        }
+      ]
     }
   ]
 }

@@ -36,41 +36,38 @@ const CUT_DISTANCE = 0.55;
 const FOCUS_HYSTERESIS = 1.25;
 
 /**
- * Who is on screen at a given time, when the transcript says so.
+ * Who is talking, when the transcript says so.
  *
- * Face size alone cannot tell two guests apart in a static two-shot — that
- * is exactly why every clip tool leans on audio. We don't decode audio, but
- * a *diarized* transcript carries the same information for free, so when the
- * phrases have speaker labels the camera follows the turns instead of
- * guessing. Speakers are matched to faces left to right, in order of first
- * appearance.
+ * Face size alone cannot tell two guests apart in a two-shot — that is
+ * exactly why every clip tool leans on audio. We don't decode audio, but a
+ * *diarized* transcript carries the same information for free (AssemblyAI's
+ * `speaker_labels`, Whisper + pyannote, or a build-time pass like the
+ * bundled sample's).
+ *
+ * A turn stores a `rank`, not a face: speakers are numbered by order of
+ * first appearance and matched, at each instant, to the faces on screen
+ * sorted left to right. Ranks survive what track identities cannot — a
+ * source that is *itself* an edited interview, cutting between a wide shot
+ * and close-ups, so the same person is a different track before and after
+ * every cut.
  */
 export type SpeakerTurns = {
-  turns: { start: number; end: number; trackIndex: number }[];
+  turns: { start: number; end: number; rank: number }[];
 };
 
-export const buildSpeakerTurns = (
-  transcript: Transcript,
-  tracks: FaceTrack[]
-): SpeakerTurns | null => {
+export const buildSpeakerTurns = (transcript: Transcript): SpeakerTurns | null => {
   const labelled = transcript.filter((phrase) => phrase.speaker !== undefined);
-  if (labelled.length === 0 || tracks.length < 2) return null;
+  if (labelled.length === 0) return null;
 
   const order: number[] = [];
   for (const phrase of labelled) {
     if (!order.includes(phrase.speaker!)) order.push(phrase.speaker!);
   }
-  const meanX = (track: FaceTrack) =>
-    track.samples.reduce((total, s) => total + s.x + s.width / 2, 0) / track.samples.length;
-  const byPosition = tracks
-    .map((track, trackIndex) => ({ trackIndex, x: meanX(track) }))
-    .sort((a, b) => a.x - b.x);
-
   return {
     turns: labelled.map((phrase) => ({
       start: phrase.start,
       end: phrase.end,
-      trackIndex: byPosition[order.indexOf(phrase.speaker!) % byPosition.length]!.trackIndex,
+      rank: order.indexOf(phrase.speaker!),
     })),
   };
 };
@@ -138,9 +135,18 @@ export const buildFollowPath = (
     let cut = false;
 
     if (faces.length > 0) {
-      // Whoever is talking wins, when we know it.
-      const turn = speakers?.turns.find((t) => time >= t.start && time < t.end);
-      const speaking = turn ? faces.find((f) => f.trackIndex === turn.trackIndex) : undefined;
+      // One face on screen: no question to answer — the source's own editor
+      // already chose. Several: whoever is talking wins, when we know it.
+      let speaking: (typeof faces)[number] | undefined;
+      if (faces.length === 1) {
+        speaking = faces[0]!;
+      } else {
+        const turn = speakers?.turns.find((t) => time >= t.start && time < t.end);
+        if (turn) {
+          const leftToRight = [...faces].sort((a, b) => a.x - b.x);
+          speaking = leftToRight[Math.min(turn.rank, leftToRight.length - 1)]!;
+        }
+      }
 
       // Otherwise: the face already framed keeps focus unless another one is
       // clearly bigger — closer to camera, usually the one being filmed.
@@ -264,6 +270,6 @@ export const buildPaths = (
   return [
     mode === 'group'
       ? buildGroupPath(tracks, duration, crop)
-      : buildFollowPath(tracks, duration, crop, buildSpeakerTurns(transcript, tracks)),
+      : buildFollowPath(tracks, duration, crop, buildSpeakerTurns(transcript)),
   ];
 };
