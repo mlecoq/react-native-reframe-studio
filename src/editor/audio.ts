@@ -35,7 +35,7 @@ const MAX_DECODE_MINUTES = 15;
  * container but routes by extension and only ships `.mp4/.m4a/.aac`, so a
  * `.mov` is copied under an `.mp4` name first.
  */
-const decodableUri = (uri: string): string => {
+export const decodableUri = (uri: string): string => {
   if (!/\.mov$/i.test(uri)) return uri;
   const copy = new File(Paths.cache, `decode-${hashUri(uri)}.mp4`);
   if (!copy.exists) new File(uri).copy(copy);

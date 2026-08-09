@@ -25,10 +25,12 @@ const FONT_FILES: Record<string, number> = {
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 /**
- * The moment the bundled sample's precomputed analysis covers — a question
- * and its answer, 68 seconds into a three-and-a-half minute interview.
+ * The moment the bundled sample's precomputed analysis covers: a continuous
+ * two-shot — both guests on screen the whole time, no source cuts — found by
+ * scanning the full interview for spans where two faces never leave the
+ * frame. That is the footage the virtual camera is happiest on.
  */
-export const SAMPLE_SEGMENT = { start: 68, duration: 24 };
+export const SAMPLE_SEGMENT = { start: 96, duration: 34 };
 
 const localUri = async (module: number) => {
   const asset = Asset.fromModule(module);

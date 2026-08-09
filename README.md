@@ -30,8 +30,10 @@ the one that puts two of their engines together.
   is talking — not just who is biggest
 - 🖼 **Three framings**: Follow (one moving window), Group (everyone in
   frame), Split (two speakers stacked — the podcast-clip look)
-- 💬 **Captions** with four styles, drag to place, from an SRT or a Whisper
-  transcript (the bundled sample ships its own)
+- 💬 **True auto-captions**: Whisper (whisper.cpp) transcribes the chosen
+  segment **on the device** — word-level timestamps, ~75MB model fetched
+  once, nothing uploaded. Pasting an SRT / Whisper JSON still works, and the
+  bundled sample ships its own transcript
 - 📤 **Export** 1080×1920@30 with the original audio, rendered by the *same*
   worklet as the preview
 
@@ -106,6 +108,20 @@ to right. That survives what track identities cannot — the bundled sample is
 the same person is a different track before and after each of the source's
 own cuts. And when a single face is on screen, there is nothing to decide:
 the source's editor already chose.
+
+### Auto-captions are segment-sized
+
+Whisper runs on the phone ([whisper.rn](https://github.com/mybigday/whisper.rn),
+i.e. whisper.cpp) and the segment-first design is what makes it pleasant: only
+the chosen 30–90 seconds are transcribed, so the tiny multilingual model
+answers in seconds. The audio reaches it through the same seam as everything
+else — `decodeAudioData` at 16kHz (exactly what Whisper wants), sliced to the
+segment, mixed to mono, no files written
+([`transcribe.ts`](src/captions/transcribe.ts)). Word-level timestamps come
+from whisper.cpp's token timestamps (`maxLen: 1` emits one segment per token;
+leading spaces glue the pieces back into words), and the words are grouped
+into caption-sized phrases on pauses, word count and span — all pure,
+testable code.
 
 ### Two spaces that never meet
 

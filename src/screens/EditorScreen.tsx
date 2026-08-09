@@ -240,7 +240,13 @@ export const EditorScreen = () => {
         visible={sheet === 'transcript'}
         onClose={() => setSheet(null)}
         video={project?.video ?? null}
+        segment={project?.segment ?? null}
         onSubmit={applyTranscript}
+        onAutoTranscript={(transcript) => {
+          // Whisper transcribed the segment's own audio: its times are
+          // already on the segment clock, unlike a pasted transcript.
+          if (project) setStage({ name: 'ready', project: { ...project, transcript } });
+        }}
       />
       <ExportSheet visible={sheet === 'export'} onClose={() => setSheet(null)} exporter={exporter} />
     </SafeAreaView>
