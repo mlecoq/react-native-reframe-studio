@@ -22,15 +22,17 @@ import type { CaptionWord, Transcript } from './types';
  */
 
 /**
- * ggml-tiny: multilingual, ~75MB, roughly real-time on a recent phone.
- * Downloaded once into the app's documents on first use — bundling it would
- * make the repo unclonable.
+ * ggml-base: multilingual, ~142MB, a few seconds per 30s segment on a
+ * recent phone. Downloaded once into the app's documents on first use —
+ * bundling it would make the repo unclonable. (tiny is half the size and
+ * twice as fast, but its word timing on non-English speech is noticeably
+ * rougher — this app burns the words on screen, so timing wins.)
  */
-const MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin';
+const MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin';
 /** A partial download must never pass for a model. */
-const MODEL_MIN_BYTES = 70_000_000;
+const MODEL_MIN_BYTES = 135_000_000;
 
-const modelFile = () => new File(Paths.document, 'ggml-tiny.bin');
+const modelFile = () => new File(Paths.document, 'ggml-base.bin');
 
 export const isModelReady = (): boolean => {
   const file = modelFile();
@@ -88,13 +90,20 @@ export const transcribeSegment = async (
     }
   }
 
+  // Whisper smears its first token timestamps across whatever leading
+  // non-speech the audio starts with — early captions then run seconds
+  // ahead until the first sentences lock in. Trim the leading quiet and
+  // shift the returned times back by the same amount.
+  const leadSeconds = leadingQuiet(mono, buffer.sampleRate);
+  const trimmed = leadSeconds > 0 ? mono.subarray(Math.floor(leadSeconds * buffer.sampleRate)) : mono;
+
   // whisper.rn's TYPES say float32, but its JSI native decodes the
   // ArrayBuffer as SIGNED 16-BIT PCM (decodePcm16 in RNWhisperJSI.cpp).
   // Hand it float32 and Whisper hears white noise — and hallucinates a
   // transcript that has nothing to do with the segment.
-  const pcm16 = new Int16Array(mono.length);
-  for (let i = 0; i < mono.length; i++) {
-    const v = Math.max(-1, Math.min(1, mono[i]!));
+  const pcm16 = new Int16Array(trimmed.length);
+  for (let i = 0; i < trimmed.length; i++) {
+    const v = Math.max(-1, Math.min(1, trimmed[i]!));
     pcm16[i] = Math.round(v * 32767);
   }
 
@@ -109,7 +118,35 @@ export const transcribeSegment = async (
     onProgress: (progress) => onProgress?.(progress / 100),
   });
   const result = await promise;
-  return phrasesFromTokenSegments(result.segments);
+  return phrasesFromTokenSegments(
+    result.segments.map((seg) => ({
+      ...seg,
+      t0: seg.t0 + leadSeconds * 100,
+      t1: seg.t1 + leadSeconds * 100,
+    }))
+  );
+};
+
+/**
+ * Seconds of quiet before the first speech in the slice — measured against
+ * the slice's own loud level, with a quarter second of pre-roll kept so the
+ * first word never starts clipped.
+ */
+const leadingQuiet = (samples: Float32Array, sampleRate: number): number => {
+  const hop = Math.round(sampleRate * 0.05);
+  const count = Math.floor(samples.length / hop);
+  if (count === 0) return 0;
+  const rms = new Array<number>(count);
+  for (let i = 0; i < count; i++) {
+    let sum = 0;
+    for (let j = i * hop; j < (i + 1) * hop; j++) sum += samples[j]! * samples[j]!;
+    rms[i] = Math.sqrt(sum / hop);
+  }
+  const loud = [...rms].sort((a, b) => a - b)[Math.floor(count * 0.92)]!;
+  if (loud <= 0) return 0;
+  const first = rms.findIndex((v) => v / loud > 0.12);
+  if (first < 0) return 0;
+  return Math.max(0, first * 0.05 - 0.25);
 };
 
 /** One whisper.cpp output segment — t0/t1 are centiseconds. */

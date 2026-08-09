@@ -31,8 +31,8 @@ the one that puts two of their engines together.
 - 🖼 **Three framings**: Follow (one moving window), Group (everyone in
   frame), Split (two speakers stacked — the podcast-clip look)
 - 💬 **True auto-captions**: Whisper (whisper.cpp) transcribes the chosen
-  segment **on the device** — word-level timestamps, ~75MB model fetched
-  once, nothing uploaded. Pasting an SRT / Whisper JSON still works, and the
+  segment **on the device** — word-level timestamps, ~142MB multilingual
+  model fetched once, nothing uploaded. Pasting an SRT / Whisper JSON still works, and the
   bundled sample ships its own transcript
 - 📤 **Export** 1080×1920@30 with the original audio, rendered by the *same*
   worklet as the preview
@@ -113,8 +113,10 @@ the source's editor already chose.
 
 Whisper runs on the phone ([whisper.rn](https://github.com/mybigday/whisper.rn),
 i.e. whisper.cpp) and the segment-first design is what makes it pleasant: only
-the chosen 30–90 seconds are transcribed, so the tiny multilingual model
-answers in seconds. The audio reaches it through the same seam as everything
+the chosen 30–90 seconds are transcribed, so the base multilingual model
+answers in seconds — and the leading quiet is trimmed before Whisper hears
+the audio, because its first token timestamps smear across any opening
+silence (times are shifted back afterwards). The audio reaches it through the same seam as everything
 else — `decodeAudioData` at 16kHz (exactly what Whisper wants), sliced to the
 segment, mixed to mono, no files written
 ([`transcribe.ts`](src/captions/transcribe.ts)). Word-level timestamps come

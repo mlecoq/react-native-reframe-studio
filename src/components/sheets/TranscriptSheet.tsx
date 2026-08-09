@@ -17,7 +17,7 @@ type AutoState =
 
 /**
  * Captions for the current segment, two ways: generate them right here with
- * Whisper running on the device (the model is fetched once, ~75MB), or
+ * Whisper running on the device (the model is fetched once, ~142MB), or
  * paste an SRT / Whisper verbose_json / plain text.
  */
 export const TranscriptSheet = ({
@@ -105,7 +105,7 @@ export const TranscriptSheet = ({
           </Button>
           <Text className="mb-4 mt-2 text-xs text-muted">
             Whisper runs on your device — nothing is uploaded.
-            {isModelReady() ? '' : ' First use downloads the model (~75 MB).'}
+            {isModelReady() ? '' : ' First use downloads the model (~142 MB).'}
           </Text>
 
           <Text className="mb-3 text-sm text-muted">
