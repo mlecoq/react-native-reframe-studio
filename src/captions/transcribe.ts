@@ -88,8 +88,18 @@ export const transcribeSegment = async (
     }
   }
 
+  // whisper.rn's TYPES say float32, but its JSI native decodes the
+  // ArrayBuffer as SIGNED 16-BIT PCM (decodePcm16 in RNWhisperJSI.cpp).
+  // Hand it float32 and Whisper hears white noise — and hallucinates a
+  // transcript that has nothing to do with the segment.
+  const pcm16 = new Int16Array(mono.length);
+  for (let i = 0; i < mono.length; i++) {
+    const v = Math.max(-1, Math.min(1, mono[i]!));
+    pcm16[i] = Math.round(v * 32767);
+  }
+
   const context = await getContext();
-  const { promise } = context.transcribeData(mono.buffer as ArrayBuffer, {
+  const { promise } = context.transcribeData(pcm16.buffer as ArrayBuffer, {
     language: 'auto',
     // Word-level mode: token timestamps + a 1-character wrap makes
     // whisper.cpp emit one segment per token; token pieces are glued back
